@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Camera, Point } from '../types/shape';
 import { zoomTo } from '../utils/geometry';
+import { isEditableTarget } from '../utils/dom';
 
 export const MIN_SCALE = 0.1; // 10%
 export const MAX_SCALE = 4; // 400%
@@ -28,12 +29,15 @@ export const useViewport = () => {
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isSpace(e)) return;
+      // В полях ввода пробел — обычный символ: не перехватываем и ладонь не включаем
+      if (isEditableTarget(e.target)) return;
       e.preventDefault();
       setSpacePressed(true);
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
       if (!isSpace(e)) return;
+      if (isEditableTarget(e.target)) return;
       e.preventDefault();
       setSpacePressed(false);
       setIsPanning(false);

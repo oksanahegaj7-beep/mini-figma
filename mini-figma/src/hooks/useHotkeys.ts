@@ -1,17 +1,7 @@
 import { useEffect } from 'react';
 import type { Tool } from '../types/shape';
 import { HISTORY_SHORTCUTS, TOOL_SHORTCUTS } from '../constants/tools';
-
-/** Поля ввода имеют собственные горячие клавиши — там мы их не перехватываем. */
-const isEditableTarget = (target: EventTarget | null): boolean => {
-  if (!(target instanceof HTMLElement)) return false;
-  return (
-    target.tagName === 'INPUT' ||
-    target.tagName === 'TEXTAREA' ||
-    target.tagName === 'SELECT' ||
-    target.isContentEditable
-  );
-};
+import { isEditableTarget } from '../utils/dom';
 
 /**
  * Глобальные горячие клавиши редактора.
