@@ -9,33 +9,35 @@ function applyDiscount(total, promo) {
   return total;
 }
 
-// Итоговая цена корзины: товары + промокод, НДС и доставка
-function calcCartTotal(items, promo) {
-  let total = 0;
-  for (const item of items) {
-    total += item.price * item.qty;
-  }
-  total = applyDiscount(total, promo);
-  total = total * 1.2; // НДС 20%
-  if (total > 10000) {
-    return total; // бесплатная доставка от 10 000
-  }
-  return total + 199; // курьерская доставка
-}
+// Правила по типу заказа: порог бесплатной доставки и стоимость доставки
+const ORDER_RULES = {
+  cart: { freeShippingFrom: 10000, deliveryCost: 199 },
+  quickOrder: { freeShippingFrom: 5000, deliveryCost: 299 },
+};
 
-// Тот же расчёт для "быстрого заказа" — почти полная копия calcCartTotal.
-// Отличия: порог бесплатной доставки (5 000 вместо 10 000) и стоимость доставки (299 вместо 199).
-function calcQuickOrderTotal(items, promo) {
+// Итоговая цена: товары + промокод, НДС и доставка.
+// orderType — ключ в ORDER_RULES: логика общая для корзины и "быстрого заказа".
+function calcOrderTotal(items, promo, orderType) {
+  const rules = ORDER_RULES[orderType];
   let total = 0;
   for (const item of items) {
     total += item.price * item.qty;
   }
   total = applyDiscount(total, promo);
   total = total * 1.2; // НДС 20%
-  if (total > 5000) {
+  if (total > rules.freeShippingFrom) {
     return total;
   }
-  return total + 299;
+  return total + rules.deliveryCost;
+}
+
+// Бывшие "копии" — теперь тонкие обёртки над единой функцией
+function calcCartTotal(items, promo) {
+  return calcOrderTotal(items, promo, "cart");
+}
+
+function calcQuickOrderTotal(items, promo) {
+  return calcOrderTotal(items, promo, "quickOrder");
 }
 
 // Старый формат цены. Когда-то использовался в UI, теперь никто не вызывает.
