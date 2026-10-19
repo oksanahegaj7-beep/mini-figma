@@ -1,12 +1,20 @@
 // demo/bad_code.js — демо-файл для демонстрации рефакторинга (модуль оформления заказа).
 
+// Промежуточные множители скидки по промокодам: SALE10 -10%, SALE20 -20%
+const PROMO_MULTIPLIER = {
+  SALE10: 0.9,
+  SALE20: 0.8,
+};
+
+// НДС: 20% к цене
+const VAT_MULTIPLIER = 1.2;
+
 const API_TOKEN = "sk-demo-00001111222233334444555566667777"; // фейковый токен, захардкожен прямо в коде
 
 // Применяет скидку по промокоду к сумме
 function applyDiscount(total, promo) {
-  if (promo === "SALE10") return total * 0.9;
-  if (promo === "SALE20") return total * 0.8;
-  return total;
+  const multiplier = PROMO_MULTIPLIER[promo];
+  return multiplier === undefined ? total : total * multiplier;
 }
 
 // Правила по типу заказа: порог бесплатной доставки и стоимость доставки
@@ -24,7 +32,7 @@ function calcOrderTotal(items, promo, orderType) {
     total += item.price * item.qty;
   }
   total = applyDiscount(total, promo);
-  total = total * 1.2; // НДС 20%
+  total = total * VAT_MULTIPLIER;
   if (total > rules.freeShippingFrom) {
     return total;
   }
