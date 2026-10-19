@@ -40,11 +40,6 @@ function calcQuickOrderTotal(items, promo) {
   return calcOrderTotal(items, promo, "quickOrder");
 }
 
-// Старый формат цены. Когда-то использовался в UI, теперь никто не вызывает.
-function formatPriceOld(value) {
-  return "Price: " + Math.round(value) + " руб.";
-}
-
 // Отправка чека в сервис квитанций
 async function sendReceipt(total) {
   const response = await fetch("https://api.example.com/receipts", {
