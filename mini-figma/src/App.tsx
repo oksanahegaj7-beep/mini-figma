@@ -21,6 +21,7 @@ function App() {
     addShape,
     updateShape,
     selectShape,
+    removeShape,
     startDrag,
     updateDrag,
     endDrag,
@@ -32,7 +33,6 @@ function App() {
     undo,
     redo,
   } = useShapes();
-  useHotkeys(setActiveTool, spacePressed, undo, redo);
 
   const getMousePos = useCallback(
     (e: React.MouseEvent) => {
@@ -149,6 +149,14 @@ function App() {
     endDrag();
   }, [endDraw, endDrag]);
 
+  /** Удаление выделенной фигуры: хоткей Delete/Backspace и кнопка в панели слоёв. */
+  const deleteSelectedShape = useCallback(() => {
+    if (selectedId) {
+      removeShape(selectedId);
+    }
+  }, [selectedId, removeShape]);
+  useHotkeys(setActiveTool, spacePressed, undo, redo, deleteSelectedShape);
+
   const handleShapeSelect = useCallback(
     (id: string | null, e: React.MouseEvent) => {
       e.stopPropagation();
@@ -165,7 +173,7 @@ function App() {
   return (
     <div className="h-full w-full">
       <TopBar activeTool={activeTool} onToolChange={setActiveTool} />
-      <LayersPanel shapes={shapes} selectedId={selectedId} onSelect={selectShape} />
+      <LayersPanel shapes={shapes} selectedId={selectedId} onSelect={selectShape} onDelete={removeShape} />
       <Canvas
         camera={camera}
         shapes={shapes}

@@ -8,12 +8,14 @@ import { isEditableTarget } from '../utils/dom';
  *
  * Инструменты: V — курсор, R — прямоугольник, O — эллипс.
  * История: Ctrl/Cmd + Z — отменить, Ctrl/Cmd + Shift + Z (или Ctrl + Y) — повторить.
+ * Delete/Backspace — onDelete (удаление выделенной фигуры).
  */
 export const useHotkeys = (
   onToolChange: (tool: Tool) => void,
   spacePressed: boolean,
   onUndo?: () => void,
-  onRedo?: () => void
+  onRedo?: () => void,
+  onDelete?: () => void
 ) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -44,6 +46,13 @@ export const useHotkeys = (
 
       if (e.altKey) return;
 
+      // Удаление выделенной фигуры
+      if ((key === 'delete' || key === 'backspace') && onDelete) {
+        e.preventDefault();
+        onDelete();
+        return;
+      }
+
       // Пробел обрабатывает useViewport (панорамирование).
       if (e.code === 'Space' || e.key === ' ') return;
 
@@ -56,5 +65,5 @@ export const useHotkeys = (
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onToolChange, spacePressed, onUndo, onRedo]);
+  }, [onToolChange, spacePressed, onUndo, onRedo, onDelete]);
 };
