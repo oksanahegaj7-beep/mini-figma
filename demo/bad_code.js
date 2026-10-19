@@ -9,7 +9,8 @@ const PROMO_MULTIPLIER = {
 // НДС: 20% к цене
 const VAT_MULTIPLIER = 1.2;
 
-const API_TOKEN = "sk-demo-00001111222233334444555566667777"; // фейковый токен, захардкожен прямо в коде
+// Токен сервиса квитанций. Не хранится в коде — приходит из окружения (см. .env.example).
+const API_TOKEN = process.env.RECEIPT_API_TOKEN;
 
 // Применяет скидку по промокоду к сумме
 function applyDiscount(total, promo) {
