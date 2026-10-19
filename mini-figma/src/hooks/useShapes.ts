@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import type { Point, Shape, ShapeType } from '../types/shape';
-import { moveShape, normalizeRect } from '../utils/geometry';
+import { moveShape, normalizeRect, resizeShape } from '../utils/geometry';
 import { DEFAULT_SHAPE_FILL } from '../constants/shapes';
 
 let idSeq = 0;
@@ -15,6 +15,13 @@ const DEFAULT_SIZE = 100;
 
 type DragState = {
   isDragging: boolean;
+  startMouse: Point;
+  startShape: Shape | null;
+};
+
+type ResizeState = {
+  isResizing: boolean;
+  handle: string;
   startMouse: Point;
   startShape: Shape | null;
 };
@@ -205,6 +212,77 @@ export const useShapes = () => {
     });
   }, []);
 
+  // --- Изменение размера за ручки трансформации ---
+
+  const [resizeState, setResizeState] = useState<ResizeState>({
+    isResizing: false,
+    handle: '',
+    startMouse: { x: 0, y: 0 },
+    startShape: null,
+  });
+  const resizeSnapshot = useRef<Shape[] | null>(null);
+  const resizeMoved = useRef(false);
+
+  /** Начало ресайза: снимок состояния, весь жест — один шаг истории. */
+  const startResize = useCallback(
+    (id: string, handle: string, mouse: Point) => {
+      const shape = shapes.find((s) => s.id === id);
+      if (!shape) return;
+      resizeSnapshot.current = shapes;
+      resizeMoved.current = false;
+      setResizeState({
+        isResizing: true,
+        handle,
+        startMouse: { x: mouse.x, y: mouse.y },
+        startShape: shape,
+      });
+    },
+    [shapes]
+  );
+
+  /** Размер считается от исходной фигуры и полного смещения курсора. */
+  const updateResize = useCallback(
+    (mouse: Point) => {
+      if (!resizeState.isResizing || !resizeState.startShape) return;
+      const dx = mouse.x - resizeState.startMouse.x;
+      const dy = mouse.y - resizeState.startMouse.y;
+      if (Math.abs(dx) < 0.0001 && Math.abs(dy) < 0.0001) return;
+      const newShape = resizeShape(resizeState.startShape, resizeState.handle, dx, dy);
+      resizeMoved.current = true;
+      setPresent((prev) =>
+        prev.map((shape) => (shape.id === newShape.id ? newShape : shape))
+      );
+    },
+    [
+      resizeState.isResizing,
+      resizeState.handle,
+      resizeState.startMouse.x,
+      resizeState.startMouse.y,
+      resizeState.startShape,
+      setPresent,
+    ]
+  );
+
+  const endResize = useCallback(() => {
+    // Фиксируем один ресайз целиком, только если фигура реально изменилась.
+    if (resizeMoved.current && resizeSnapshot.current) {
+      const snapshot = resizeSnapshot.current;
+      setHistory((prev) => ({
+        past: [...prev.past, snapshot].slice(-HISTORY_LIMIT),
+        present: prev.present,
+        future: [],
+      }));
+    }
+    resizeSnapshot.current = null;
+    resizeMoved.current = false;
+    setResizeState({
+      isResizing: false,
+      handle: '',
+      startMouse: { x: 0, y: 0 },
+      startShape: null,
+    });
+  }, []);
+
   // --- Создание фигуры перетаскиванием ---
 
   const drawRef = useRef<{ id: string; start: Point } | null>(null);
@@ -280,6 +358,10 @@ export const useShapes = () => {
     startDrag,
     updateDrag,
     endDrag,
+    resizeState,
+    startResize,
+    updateResize,
+    endResize,
     isDrawing,
     beginDraw,
     updateDraw,

@@ -26,6 +26,10 @@ function App() {
     updateDrag,
     endDrag,
     dragState,
+    resizeState,
+    startResize,
+    updateResize,
+    endResize,
     isDrawing,
     beginDraw,
     updateDraw,
@@ -119,9 +123,13 @@ function App() {
     (e: React.MouseEvent<HTMLDivElement>) => {
       if (e.buttons !== 1 || spacePressed) return;
       const point = getMousePos(e);
-      // Сначала рисование, затем перемещение уже существующей фигуры.
+      // Сначала рисование, затем ресайз, затем перемещение уже существующей фигуры.
       if (isDrawing) {
         updateDraw(point);
+        return;
+      }
+      if (resizeState.isResizing) {
+        updateResize(point);
         return;
       }
       if (dragState.isDragging && activeTool === 'select') {
@@ -133,21 +141,35 @@ function App() {
       dragState.isDragging,
       getMousePos,
       isDrawing,
+      resizeState.isResizing,
       spacePressed,
       updateDrag,
       updateDraw,
+      updateResize,
     ]
   );
 
   const handleCanvasMouseUp = useCallback(() => {
     endDraw();
     endDrag();
-  }, [endDraw, endDrag]);
+    endResize();
+  }, [endDraw, endDrag, endResize]);
 
   const handleCanvasMouseLeave = useCallback(() => {
     endDraw();
     endDrag();
-  }, [endDraw, endDrag]);
+    endResize();
+  }, [endDraw, endDrag, endResize]);
+
+  /** Начало ресайза за ручку: событие не отдаём холсту, чтобы не началось перетаскивание фигуры. */
+  const handleResizeStart = useCallback(
+    (e: React.MouseEvent, handle: string) => {
+      if (!selectedId) return;
+      e.stopPropagation();
+      startResize(selectedId, handle, getMousePos(e));
+    },
+    [selectedId, getMousePos, startResize]
+  );
 
   /** Удаление выделенной фигуры: хоткей Delete/Backspace и кнопка в панели слоёв. */
   const deleteSelectedShape = useCallback(() => {
@@ -187,6 +209,7 @@ function App() {
         onMouseUp={handleCanvasMouseUp}
         onMouseLeave={handleCanvasMouseLeave}
         onSelectShape={handleShapeSelect}
+        onResizeShape={handleResizeStart}
       />
       <PropertiesPanel selectedShape={selectedShape} onUpdateShape={updateShape} />
     </div>

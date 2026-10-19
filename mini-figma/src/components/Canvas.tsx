@@ -14,6 +14,7 @@ type CanvasProps = {
   onMouseUp?: (e: React.MouseEvent<HTMLDivElement>) => void;
   onMouseLeave?: (e: React.MouseEvent<HTMLDivElement>) => void;
   onSelectShape?: (id: string | null, e: React.MouseEvent) => void;
+  onResizeShape?: (e: React.MouseEvent, handle: string) => void;
 };
 
 /** Холст на весь экран: сетка на фоне, мышь, зум колесом, панорама пробелом. */
@@ -30,6 +31,7 @@ export const Canvas = ({
   onMouseUp,
   onMouseLeave,
   onSelectShape,
+  onResizeShape,
 }: CanvasProps) => {
   const gridSize = 20 * camera.scale;
   const showGrid = camera.scale > 0.2;
@@ -90,6 +92,7 @@ export const Canvas = ({
           isSelected={selectedId === shape.id}
           camera={camera}
           onSelect={(id, e) => onSelectShape?.(id, e)}
+          onResize={onResizeShape}
         />
       ))}
     </div>

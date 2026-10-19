@@ -20,6 +20,41 @@ export function moveShape(shape: Shape, dx: number, dy: number): Shape {
   };
 }
 
+/**
+ * Изменение размера фигуры перетаскиванием ручки `handle`
+ * ('tl' | 'tr' | 'bl' | 'br' | 't' | 'b' | 'l' | 'r') на dx, dy в координатах канваса.
+ * Ручка, протащенная «насквозь», разворачивает прямоугольник — как при рисовании.
+ */
+export function resizeShape(shape: Shape, handle: string, dx: number, dy: number): Shape {
+  let { x, y, width, height } = shape;
+
+  if (handle.includes('l')) {
+    x += dx;
+    width -= dx;
+  }
+  if (handle.includes('r')) {
+    width += dx;
+  }
+  if (handle.includes('t')) {
+    y += dy;
+    height -= dy;
+  }
+  if (handle.includes('b')) {
+    height += dy;
+  }
+
+  if (width < 0) {
+    x += width;
+    width = -width;
+  }
+  if (height < 0) {
+    y += height;
+    height = -height;
+  }
+
+  return { ...shape, x, y, width, height };
+}
+
 /** Границы фигуры в координатах канваса (x,y,width,height). */
 export function getShapeBounds(shape: Shape) {
   return {
