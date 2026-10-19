@@ -88,7 +88,6 @@ function App() {
           y: point.y,
           width: 200,
           height: 150,
-          fill: '#000000',
           opacity: 1,
         };
         addShape(newShape);

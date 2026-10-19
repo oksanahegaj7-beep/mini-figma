@@ -1,6 +1,7 @@
 import type { Camera, Shape } from '../types/shape';
 import { canvasToScreen } from '../utils/geometry';
 import { TransformHandles } from './TransformHandles';
+import { Image as ImageIcon } from 'lucide-react';
 
 type ShapeProps = {
   shape: Shape;
@@ -159,7 +160,30 @@ export const ShapeComponent = ({ shape, isSelected, camera, onSelect, onResize }
         </div>
       );
     }
-    if (shape.type === 'image' && shape.imageUrl) {
+    if (shape.type === 'image') {
+      if (!shape.imageUrl) {
+        // Картинка ещё не выбрана — рисуем видимый placeholder вместо невидимой фигуры
+        return (
+          <div
+            style={{
+              ...baseStyle,
+              backgroundColor: 'transparent',
+              border: '1px dashed #9ca3af',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 4,
+              color: '#6b7280',
+              fontSize: 11 * camera.scale,
+            }}
+            onMouseDown={handleClick}
+          >
+            <ImageIcon size={Math.max(14, 20 * camera.scale)} />
+            <span>Нет изображения</span>
+          </div>
+        );
+      }
       return (
         <div
           style={{
